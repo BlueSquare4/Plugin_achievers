@@ -1,10 +1,13 @@
 import React, { useState } from "react";
+import axios from "axios";
 
 const Upload = () => {
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
   const [fileDetails, setFileDetails] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [transcriptionStatus, setTranscriptionStatus] = useState("");
+  const [transcriptionText, setTranscriptionText] = useState("");
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -34,32 +37,39 @@ const Upload = () => {
     setIsUploading(true);
     setProgress(0);
     setMessage("");
+    setTranscriptionStatus("");
+    setTranscriptionText("");
 
     try {
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
+      const response = await axios.post("/api/upload", formData, {
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setProgress(percentCompleted);
+        },
       });
 
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.statusText}`);
-      }
+      if (response.data.success) {
+        setMessage(`Upload successful! File URL: ${response.data.videoUrl}`);
+        setTranscriptionStatus("Processing transcription...");
 
-      // Simulating progress for frontend (actual progress requires Axios)
-      const timer = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(timer);
+        // Poll for transcription results
+        const pollTranscription = async () => {
+          const { data } = await axios.get(`/api/transcribe?jobName=${response.data.transcriptionJobName}`);
+          if (data.status === "COMPLETED") {
+            setTranscriptionStatus("Transcription completed.");
+            setTranscriptionText(data.transcriptUrl); // Set the transcription text
+          } else if (data.status === "IN_PROGRESS") {
+            setTimeout(pollTranscription, 5000); // Poll every 5 seconds
+          } else {
+            setTranscriptionStatus("Transcription failed.");
           }
-          return prev + 20;
-        });
-      }, 300);
+        };
 
-      const data = await response.json();
-      if (data.success) {
-        setMessage(`Upload successful! File URL: ${data.url}`);
+        pollTranscription();
       } else {
-        setMessage(`Error: ${data.error}`);
+        setMessage(`Error: ${response.data.error}`);
       }
     } catch (error) {
       setMessage(`Upload failed: ${error.message}`);
@@ -73,6 +83,8 @@ const Upload = () => {
     setMessage("");
     setFileDetails(null);
     setIsUploading(false);
+    setTranscriptionStatus("");
+    setTranscriptionText("");
   };
 
   return (
@@ -97,6 +109,15 @@ const Upload = () => {
         >
           Reset
         </button>
+        
+                    <button
+            type="button"
+            onClick={() => (window.location.href = "/dashboard")}
+            style={{ ...styles.button, backgroundColor: "#007bff" }}
+          >
+            Go to Dashboard
+          </button>
+
       </form>
 
       {fileDetails && (
@@ -119,6 +140,17 @@ const Upload = () => {
       )}
 
       {message && <div style={styles.message}>{message}</div>}
+
+      {transcriptionStatus && (
+        <div style={styles.transcriptionStatus}>
+          <p><strong>Transcription Status:</strong> {transcriptionStatus}</p>
+          {transcriptionText && (
+            <p>
+              <strong>Transcript:</strong> <a href={transcriptionText} target="_blank" rel="noopener noreferrer">View Transcript</a>
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -168,6 +200,15 @@ const styles = {
     marginTop: "20px",
     textAlign: "left",
     fontSize: "14px",
+  },
+  transcriptionStatus: {
+    marginTop: "20px",
+    padding: "10px",
+    borderRadius: "5px",
+    backgroundColor: "#e8f5e9",
+    color: "#2e7d32",
+    fontSize: "14px",
+    textAlign: "center",
   },
 };
 
