@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In / Sign Up</title>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js"></script>
+</head>
+<body>
+  <h1>Sign In / Sign Up</h1>
+
+  <!-- Sign Up Form -->
+  <div>
+    <h2>Sign Up</h2>
+    <input id="signupEmail" type="email" placeholder="Email" />
+    <input id="signupPassword" type="password" placeholder="Password" />
+    <button id="signupBtn">Sign Up</button>
+  </div>
+
+  <!-- Sign In Form -->
+  <div>
+    <h2>Sign In</h2>
+    <input id="signinEmail" type="email" placeholder="Email" />
+    <input id="signinPassword" type="password" placeholder="Password" />
+    <button id="signinBtn">Sign In</button>
+  </div>
+
+  <!-- Log Out -->
+  <div>
+    <button id="logoutBtn">Log Out</button>
+  </div>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.getAuth(app);
+
+    // Sign Up
+    document.getElementById("signupBtn").addEventListener("click", async () => {
+      const email = document.getElementById("signupEmail").value;
+      const password = document.getElementById("signupPassword").value;
+      try {
+        await firebase.createUserWithEmailAndPassword(auth, email, password);
+        alert("Sign Up Successful!");
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    });
+
+    // Sign In
+    document.getElementById("signinBtn").addEventListener("click", async () => {
+      const email = document.getElementById("signinEmail").value;
+      const password = document.getElementById("signinPassword").value;
+      try {
+        const userCredential = await firebase.signInWithEmailAndPassword(auth, email, password);
+        const token = await userCredential.user.getIdToken();
+        // Send token to the backend
+        await fetch("/api/session-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+        alert("Sign In Successful!");
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    });
+
+    // Log Out
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await firebase.signOut(auth);
+      await fetch("/api/session-logout", { method: "POST" });
+      alert("Logged Out!");
+    });
+  </script>
+</body>
+</html>

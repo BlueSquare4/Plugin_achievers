@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In</title>
+  <script>
+    async function handleSignIn(event) {
+      event.preventDefault(); // Prevent the default form submission (GET request)
+
+      // Get the button and disable it during the process
+      const button = document.querySelector("button");
+      button.disabled = true;
+      button.textContent = "Signing In...";
+
+      try {
+        // Get form data
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        // Send data to the server (POST request)
+        const response = await fetch("/signin", {
+          method: "POST",  // Ensure this is POST
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        // Handle the response
+        const result = await response.json();
+
+        if (response.ok) {
+          alert(result.message); // Show success message
+          window.location.href = result.redirect || "/";  // Redirect to home page
+        } else {
+          alert(result.error || "Sign-In failed. Please try again.");
+        }
+      } catch (error) {
+        alert("An error occurred. Please check your network connection.");
+        console.error("Sign-In Error:", error);
+      } finally {
+        // Re-enable the button
+        button.disabled = false;
+        button.textContent = "Sign In";
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>Sign In</h1>
+  <form onsubmit="handleSignIn(event)">
+    <input id="email" type="email" placeholder="Email" required /><br />
+    <input id="password" type="password" placeholder="Password" required /><br />
+    <button type="submit">Sign In</button>
+  </form>
+  <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+</body>
+</html>
