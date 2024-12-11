@@ -1,30 +1,54 @@
-// const mongoose = require("mongoose");
+// // import mongoose from "mongoose";
 
+// // // Define the video schema
+// // const videoSchema = new mongoose.Schema({
+// //   videoName: { type: String, required: true },
+// //   videoUrl: { type: String, required: true },
+// //   transcriptionStatus: { type: String, required: true, default: "IN_PROGRESS" }, // IN_PROGRESS, COMPLETED, FAILED
+// //   transcriptionResult: { type: String, default: null }, // Link to transcription file
+// //   transcriptionJobName: { type: String, required: true }, // AWS Transcription job name
+// // });
+
+// // // Check if the model is already defined to avoid the OverwriteModelError
+// // const Video = mongoose.models.Video || mongoose.model("Video", videoSchema);
+
+// // export default Video;
+// import mongoose from "mongoose";
+
+// // Define the video schema
 // const videoSchema = new mongoose.Schema({
-//   videoName: String,
-//   videoUrl: String,
-//   transcriptionJobName: String,
-//   transcriptionStatus: String,
-//   transcriptionText: String, // To store completed transcription text
+//   videoName: { type: String, required: true },
+//   videoUrl: { type: String, required: true },
+//   transcriptionStatus: { type: String, required: true, default: "IN_PROGRESS" }, // IN_PROGRESS, COMPLETED, FAILED
+//   transcriptionResult: { type: String, default: null }, // Link to transcription file
+//   transcriptionJobName: { type: String, required: true }, // AWS Transcription job name
 // });
 
-// module.exports = mongoose.models.Video || mongoose.model("Video", videoSchema);
+// // Avoid model redefinition
+// let Video;
+
+// if (mongoose.models.Video) {
+//   Video = mongoose.models.Video; // Use existing model if already defined
+// } else {
+//   Video = mongoose.model("Video", videoSchema); // Otherwise, create the new model
+// }
+
+// export default Video;
 
 
-import mongoose from 'mongoose';
 
-const VideoSchema = new mongoose.Schema({
+import mongoose from "mongoose";
+
+// Define the video schema
+const videoSchema = new mongoose.Schema({
   videoName: { type: String, required: true },
   videoUrl: { type: String, required: true },
-  transcriptionJobName: { type: String, required: true },
-  transcriptionStatus: { 
-    type: String, 
-    enum: ['IN_PROGRESS', 'COMPLETED', 'FAILED'], 
-    default: 'IN_PROGRESS' 
-  },
-  fileSize: { type: Number, required: true },
-  fileType: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
+  transcriptionStatus: { type: String, required: true, default: "IN_PROGRESS" }, // IN_PROGRESS, COMPLETED, FAILED
+  transcriptionResult: { type: String, default: null }, // Link to transcription file
+  transcriptionJobName: { type: String, required: true }, // AWS Transcription job name
 });
 
-export default mongoose.models.Video || mongoose.model('Video', VideoSchema);
+// Avoid model redefinition
+const Video = mongoose.models.Video || mongoose.model("Video", videoSchema);
+
+export default Video;

@@ -1,4 +1,3 @@
-// pages/dashboard.js
 import React, { useEffect, useState } from "react";
 
 const Dashboard = () => {
@@ -14,9 +13,9 @@ const Dashboard = () => {
           throw new Error("Failed to fetch videos");
         }
         const data = await response.json();
-        setVideos(data.videos); // Set the videos data
+        setVideos(data.videos);
       } catch (err) {
-        setError(err.message); // Set error message
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -37,11 +36,11 @@ const Dashboard = () => {
     <div>
       <h1>Video Dashboard</h1>
       {videos.length === 0 ? (
-        <p>No videos found.</p>
+        <p>No videos available.</p>
       ) : (
         <ul>
-          {videos.map((video, index) => (
-            <li key={index}>
+          {videos.map((video) => (
+            <li key={video._id}>
               <h3>{video.videoName}</h3>
               <p><strong>Video URL:</strong> <a href={video.videoUrl} target="_blank" rel="noopener noreferrer">{video.videoUrl}</a></p>
               <p><strong>Status:</strong> {video.transcriptionStatus}</p>
